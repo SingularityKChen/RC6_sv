@@ -1,6 +1,10 @@
 //===========================================
-// Function : Some basic definitions
+// Function : Some basic definitions which 
+//						includes some functions and the
+//						interface port 
+// FileName	: definition.sv
 // Coder    : SingularityKChen
+// Edition	: edit 1
 // Date     : DEC 09/2018
 //===========================================
 
