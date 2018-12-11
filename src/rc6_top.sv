@@ -1,6 +1,8 @@
 //===========================================
 // Function : ENCRYPT AND DECRYPT OF RC6
+// FileName	: rc6_top.sv
 // Coder    : SingularityKChen
+// Edition	: edit 1
 // Date     : DEC 09/2018
 //===========================================
 `include "definitions.sv"
@@ -83,4 +85,4 @@ always_ff @(posedge RC6.clk or negedge RC6.reset) begin
 		endcase
 	end // else
 end
-endmodule
+endmodule	
