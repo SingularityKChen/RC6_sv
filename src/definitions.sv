@@ -1,4 +1,4 @@
-//===========================================
+	//===========================================
 // Function : Some basic definitions which 
 //						includes some functions and the
 //						interface port 
@@ -13,38 +13,39 @@ interface main_port (input wire clk, clk_in, sta_in, data_in, reset, zset,
 	output wire clk_out, sta_out, data_put);
 	logic clk, reset, zset, clk_out, sta_out, data_put, clk_in, sta_in, data_in;
 	logic [127 : 0] datain, dataout, data_back, data_out;
-	function automatic [31 : 0] lshitf (input logic [31 : 0] datain,
-		input logic [4 : 0] shiftnum);
+
+	function automatic [31 : 0] lshitf(input logic [31 : 0] shiftldatain,
+		input logic [4 :0] shiftnum);
 		logic [31 : 0] result;
-		result = datain;
-		if (shiftnum[4] == 1)
+		result = shiftldatain;
+		if (shiftnum[4])
 			result = {result[15 : 0], result[31 : 16]};
-		if (shiftnum[3] == 1)
+		if (shiftnum[3])
 			result = {result[23 : 0], result[31 : 24]};
-		if (shiftnum[2] == 1)
+		if (shiftnum[2])
 			result = {result[27 : 0], result[31 : 28]};
-		if (shiftnum[1] == 1)
+		if (shiftnum[1])
 			result = {result[29 : 0], result[31 : 30]};
-		if (shiftnum[0] == 1)
+		if (shiftnum[0])
 			result = {result[30 : 0], result[31]};
 		return result;
 	endfunction : lshitf
 	//===========================================
 
 	//===========================================
-	function automatic [31 : 0] rshitf (input logic [31 : 0] datain,
+	function automatic [31 : 0] rshitf(input logic [31 : 0] shiftrdatain,
 		input logic [4 : 0] shiftnum);
 		logic [31 : 0] result;
-		result = datain;
-		if (shiftnum[4] == 1)
+		result = shiftrdatain;
+		if (shiftnum[4])
 			result = {result[15 : 0], result[31 : 16]};
-		if (shiftnum[3] == 1)
+		if (shiftnum[3])
 			result = {result[7 : 0], result[31 : 8]};
-		if (shiftnum[2] == 1)
+		if (shiftnum[2])
 			result = {result[3 : 0], result[31 : 4]};
-		if (shiftnum[1] == 1)
+		if (shiftnum[1])
 			result = {result[1 : 0], result[31 : 2]};
-		if (shiftnum[0] == 1)
+		if (shiftnum[0])
 			result = {result[0], result[31 : 1]};
 		return result;
 	endfunction : rshitf
@@ -91,26 +92,26 @@ interface main_port (input wire clk, clk_in, sta_in, data_in, reset, zset,
 	//===========================================
 
 	//===========================================
-	function automatic [127 : 0] rfunct (input logic [127 : 0] datain,
+	function automatic [127 : 0] rfunct (input logic [127 : 0] r_datain,
 		input logic [31 : 0] key1, key2,
 		input logic enc);
-		logic [127 :0] dataout;
+		logic [127 :0] r_dataout;
 		logic [31 : 0] a, b, c, d, t, u;
 		logic [63 : 0] temp1, temp2;
 		parameter shiftn = 5'b00101;
 		begin : rfunct_main
 			assert ($isunknown(enc)) else $error("enc = x");//if enc=x,then error
 			if(enc) begin : abcd_1
-				a = datain[31 : 0];
-				b = datain[63 : 32];
-				c = datain[95 : 64];
-				d = datain[127 : 96];
+				a = r_datain[31 : 0];
+				b = r_datain[63 : 32];
+				c = r_datain[95 : 64];
+				d = r_datain[127 : 96];
 			end : abcd_1
 			else begin : abcd_0
-				a = datain[95 : 64];
-				b = datain[31 : 0];
-				c = datain[63 : 32];
-				d = datain[127 : 96];
+				a = r_datain[95 : 64];
+				b = r_datain[31 : 0];
+				c = r_datain[63 : 32];
+				d = r_datain[127 : 96];
 			end : abcd_0
 			temp1 = (b * 2 + 1) * b;
 			temp2 = (d * 2 + 1) * d;
@@ -118,9 +119,9 @@ interface main_port (input wire clk, clk_in, sta_in, data_in, reset, zset,
 			u = lshitf(temp2[31 : 0], shiftn);
 			a = afunct(a, key1, t, u, enc);
 			c = cfunct(c, key2, t, u, enc);
-			unique if(enc == 1) dataout = {a, d, c, b};
-			else if(enc == 0) dataout = {d, c, b, a};
-			return dataout;
+			unique if(enc == 1) r_dataout = {a, d, c, b};
+			else if(enc == 0) r_dataout = {d, c, b, a};
+			return r_dataout;
 		end : rfunct_main
 	endfunction : rfunct
 	//===========================================
@@ -133,14 +134,12 @@ interface main_port (input wire clk, clk_in, sta_in, data_in, reset, zset,
 		output data_out
 		);
 	modport RC6TOP (
-		import function rfunct(input logic [127 : 0] datain,
-		input logic [31 : 0] key1, key2,
-		input logic enc),
+		import function [127 : 0] rfunct
+						(input logic [127 : 0] r_datain,
+						input logic [31 : 0] key1, key2,
+								input logic enc),
 		input clk, reset, zset, datain,
 		output dataout
 	);
-	`ifndef SYNTHESIS
-		main_portMethod Method;
-	`endif
 endinterface
-
+			 	
