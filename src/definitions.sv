@@ -4,15 +4,19 @@
 //						interface port 
 // FileName	: definition.sv
 // Coder    : SingularityKChen
-// Edition	: edit 1
+// Edition	: Edit 3
 // Date     : DEC 09/2018
+//						DEC 13/2018
+//						DEC 16/2018
 //===========================================
 
-//===========================================
-interface main_port (input wire clk, clk_in, sta_in, data_in, reset, zset,
-	output wire clk_out, sta_out, data_put);
-	logic clk, reset, zset, clk_out, sta_out, data_put, clk_in, sta_in, data_in;
-	logic [127 : 0] datain, dataout, data_back, data_out;
+//==========================================
+interface main_port (clk, clk_in, inen, data_in, reset, zset,clk_out, data_out, outen);
+	input logic clk, clk_in, inen, reset, zset, outen;
+	input logic [127 : 0] data_in;
+	output logic clk_out;
+	output logic [127 : 0] data_out;
+	logic [127 : 0] trans_real, trans_rc6;
 
 	function automatic [31 : 0] lshitf(input logic [31 : 0] shiftldatain,
 		input logic [4 :0] shiftnum);
@@ -36,18 +40,20 @@ interface main_port (input wire clk, clk_in, sta_in, data_in, reset, zset,
 	function automatic [31 : 0] rshitf(input logic [31 : 0] shiftrdatain,
 		input logic [4 : 0] shiftnum);
 		logic [31 : 0] result;
+		reg [31 : 0] middle_result;
 		result = shiftrdatain;
 		if (shiftnum[4])
 			result = {result[15 : 0], result[31 : 16]};
 		if (shiftnum[3])
 			result = {result[7 : 0], result[31 : 8]};
+		middle_result = result;//to form the Pipeline.
 		if (shiftnum[2])
-			result = {result[3 : 0], result[31 : 4]};
+			middle_result = {middle_result[3 : 0], middle_result[31 : 4]};
 		if (shiftnum[1])
-			result = {result[1 : 0], result[31 : 2]};
+			middle_result = {middle_result[1 : 0], middle_result[31 : 2]};
 		if (shiftnum[0])
-			result = {result[0], result[31 : 1]};
-		return result;
+			middle_result = {result[0], middle_result[31 : 1]};
+		return middle_result;
 	endfunction : rshitf
 	//===========================================
 
@@ -93,7 +99,7 @@ interface main_port (input wire clk, clk_in, sta_in, data_in, reset, zset,
 
 	//===========================================
 	function automatic [127 : 0] rfunct (input logic [127 : 0] r_datain,
-		input logic [31 : 0] key1, key2,
+			input logic [31 : 0] key1, key2,
 		input logic enc);
 		logic [127 :0] r_dataout;
 		logic [31 : 0] a, b, c, d, t, u;
@@ -125,21 +131,21 @@ interface main_port (input wire clk, clk_in, sta_in, data_in, reset, zset,
 		end : rfunct_main
 	endfunction : rfunct
 	//===========================================
-	modport  DATAOUT(
-		output clk_out, sta_out, data_put,
-		input clk, reset, data_back
+	modport trans (
+		input clk_in, reset, inen, data_in, clk, outen, trans_real,
+		output data_out, clk_out, trans_rc6
 		);
-	modport DATAIN (
-		input clk_in, sta_in, data_in, clk,
-		output data_out
-		);
-	modport RC6TOP (
+	modport rc6 (
 		import function [127 : 0] rfunct
-						(input logic [127 : 0] r_datain,
-						input logic [31 : 0] key1, key2,
-								input logic enc),
-		input clk, reset, zset, datain,
-		output dataout
-	);
+													(input logic [127 : 0] r_datain,
+													input logic [31 : 0] key1, key2,
+													input logic enc),
+		input clk, reset, zset, trans_rc6,
+		output trans_real
+		);
+	modport tb (
+		input clk, clk_in, inen, reset, zset, outen, data_in,
+		output clk_out,data_out
+		);
 endinterface
-			 	
+
