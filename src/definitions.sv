@@ -146,6 +146,5 @@ interface main_port (clk, clk_in, inen, data_in, reset, zset,clk_out, data_out, 
 	modport tb (
 		input clk, clk_in, inen, reset, zset, outen, data_in,
 		output clk_out,data_out
-		);
+	);
 endinterface
-
